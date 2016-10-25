@@ -1,76 +1,61 @@
 \documentclass[11pt, letterpaper]{article}
 \usepackage{fullpage}
+\usepackage{parskip}
 
 \begin{document}
-\title{Proposal}
+\title{CS 5525 -- Project Proposal}
 \author{Harsh Patel, Ayaan Kazerouni}
 \date{}
 \maketitle
-
-\section*{Description of the Data}
-We have chosen a European soccer dataset that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
+\textbf{Description of the Data:} We have chosen a European soccer dataset that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
 Covering 11 European countries and their championships, this dataset spans an 8-year period (2008 - 2016).
 It provides detailed match events such as goal types, possessions and more, for more than 10000 matches.
 Player and team attributes are sourced from the popular EA Sports FIFA video game series.
-\newline
-\\
-The data is provided in a relational database (RDB) of \textbf{Matches} (115), \textbf{Players} (7), \textbf{Player-Attributes} (42), \textbf{Teams} (5), \textbf{Team-Attributes} (25), \textbf{Leagues} (3), and \textbf{Countries} (2).
+
+The data is provided in a relational database (RDB) of \textit{Matches} (115D), \textit{Players} (7D), \textit{Player-Attributes} (42D), \textit{Teams} (5D), \textit{Team-Attributes} (25D), \textit{Leagues} (3D), and \textit{Countries} (2D).
 Of these, the entities of interest are Player-Attributes, Team-Attributes, and Matches.
 We think the other entities will be of use for mostly indexing purposes.
 
-\section*{Objective}
-Our goal is to train a model using this data, which given similar attributes about two teams, is able to predict the outcome of the game fairly confidently. 
-Where, the outcome if defined as whether there would be a winning team, if so, which one and if not, it has to be a draw. 
-Essentially, the model assigns one of the three classes to two teams, namely, winner, loser or draw.
+\textbf{Objective:} Our initial goal is to train a model which, given current attributes for two teams, is able to predict the outcome of some future match between them.
+This prediction includes predicting the winner of the game (if any).
+Following this, we will also attempt more detailed predictions about a match, such as the number of goals scored.
+Predictions like these have implications on book-keeping and betting.
 
-\section*{Reasons for Choosing this Dataset}
-This dataset is interesting to us because both partners are sports fans.
+\textbf{Reasons for Choosing this Dataset:} This dataset is interesting because both partners are sports fans.
 We also think it would be interesting to come up with a model to predict match winners, key player attributes, and league winners.
 The provider of the dataset mentioned a match-prediction accuracy of 53\%.
 Even though we are unlikely to succeed, we think it would be interesting to try to beat that percentage.
 
-Also, Kaggle provides for iterative improvements of the dataset.
-The most recent versions were uploaded within 10 days of this writing (version 7 through 10).
+Kaggle provides for iterative improvements of uploaded datasets.
+The most recent versions were uploaded within 10 days of this writing (versions 7 through 10).
 The frequently updated nature of this dataset suggests that care has been taken to maintain the high quality of the data.
 
-\section*{Proposed Data Preprocessing Steps}
-Considerable amount of efforts have been put to collect data from various sources and compile a consolidated dataset and pre-process it, by the provider (Kaggle user Hugo Mathien).
-Thanks to Mathien's efforts in collecting and organising this dataset from several sources, we are afforded the ability to issue straightforward SQL queries in our data aggregation steps.
+\textbf{Proposed Data Preprocessing Steps:} Considerable efforts have been put in to collect data from various sources and compile a consolidated dataset and pre-process it by the provider (Kaggle user Hugo Mathien).
+Thanks to him, we are afforded the ability to issue straightforward SQL queries in our data aggregation steps.
 This will enable us to reduce dimensionality to easily focus only on areas of interest.
 
 We aim to follow standard data cleaning processes as studied in the class.
 We will be ignoring Nominal data, such as player ID, team ID, etc., for the purpose of generating the model.
-Ignoring this nominal attributes, we will apply dimensionality reduction techniques to find the most promising features.
-Again, following the standard practice, we'll come up with attributes that represent more than 90\% variance in the data.
-We are not sure, at this stage, if we'll use PCA or SVD.
+We will apply dimensionality reduction techniques to find the most promising team attributes.
+Again, following the standard practice, we'll come up with attributes that represent more than 90\% of the variance in the data.
+At this stage we have not yet decided if we will incorporate Principal Component Analysis (PCA) or Singular Vector Decomposition (SVD).
 
-Also, to implement the proposed methods to generate the model, we might have to tweak the data in some form.
-As the data is structured in such a way that it doesn't list all the attributes in one table itself, but makes several tables that contians specific area of the data.
-We will try to come up with one table.
-Using SQL, we will extract team data for each match.
-This team data will lead to team attributes and player attributes in turn.
-We will try to consolidate all this data into one table and move forward, or apply the above mentioned techniques to reduce dimensions of separate tables.
+\textbf{Proposed Data Mining Approaches:} For model creation, we are partial to decision trees over rule-based classifiers.
+With rule-based classifiers, there is a bit more overhead with ordering and prioritising rules that is not present when using decision trees.
+This overhead comes without an increase in speed of classification.
+We aim train our model using 70\% of the data, and use 10\% as a validation set and 20\% as the test set.
+However, this may not be possible.
+At first glance, the size of the data is sufficient to simply do a 70-30 split for training and testing.
+However, after aggregating data from many tables, and accounting for severely incomplete rows, the size of the data might reduce signficantly.
+In this case, we will have to adapt our training and testing techniques.
 
-We could also attempt to predict the goal-count of a match, which would have implications on bookkeeping and betting.
+Depending on the prediction capability of the model, we will move towards developing another model using a naive Bayes approach and compare its results with the former model, if time permits.
 
-\section*{Proposed Data Mining Approaches}
-For model creation, we are partial to decision trees over rule-based classifiers.
-With rule-based classifiers, there is a bit more overhead with ordering and prioritising rules that is not present when using decision trees. 
-This overhead comes without an increase in speed of classification. Due to the reduced complexity, we prefer decision trees. 
-We will train our model using 70\% of the data, we will use 10\% data as a validation set and the rest 20\% as test set. 
+\textbf{Future Work:} As proposed, we are limiting our approach to decision trees and naive Bayes.
+But, given the nature of data, the dependencies between different data attributes cannot be denied. There could be dependencies between team attributes and player attributes.
+There could be dependencies between attributes of different players as well.
+A particular player may be very well coordinated with a particular player, but may not be the case with some other player.
+Hence, the coordination between players could be a deciding factor in a match.
 
-\section*{Results}
-Depending on the prediction capability of the model, we will move towards developing another model using Naive Bayes and compare its results with the former model, if time permits to do so. 
-
-\section*{Future Work}
-As proposed, we are limiting out approach to Decision trees and Naive Bayes. 
-But, given the nature of data, the dependencies between different data attributes cannot be denied. There could be dependencies between team attributes and player attributes. 
-There could be dependencies between attributes of different players as well. 
-A particular player may play in a very well coordinated way with a particular player, but may not be the case with some other player. 
-Hence, the coordination between players could be a deciding factor about a win or a loss. 
-\newline
-\\
-The potential work could take into consideration these dependencies to come up with Bayesian Networks or Tree Augmented Baysian Networks. 
-Training a model using these dependencies and try to come up with the model that best fits the given data and gives a good prediction at the same time could be of interest to the community.
-
+With these dependencies in mind, it would perhaps be better to consider Bayesian networks for the second model.
 \end{document}
