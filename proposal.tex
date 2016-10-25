@@ -1,0 +1,54 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{fullpage}
+
+\begin{document}
+\title{Proposal}
+\author{Harsh Patel, Ayaan Kazerouni}
+\date{}
+\maketitle
+
+\section*{Description of the Data}
+This data set contains information about European soccer.
+It contains data about more than 25000 matches and more than 10000 players and their attributes.
+This data covers 11 European countries and their championships and spans an 8-year period (2008 - 2016).
+The data set provides detailed match events such as goal types, possessions and more for more than 10000 matches.
+Player and team attributes are sourced from the popular EA Sports FIFA video game series.
+
+
+The data is provided in a relational database (RDB) of \textbf{Matches} (115), \textbf{Players} (7), \textbf{Player-Attributes} (42), \textbf{Teams} (5), \textbf{Team-Attributes} (25), \textbf{Leagues} (3), and \textbf{Countries} (2).
+Of these, the entities of interest are Player-Attributes, Team-Attributes, and Matches.
+We think the other entities will be of use for mostly indexing purposes.
+
+\subsection*{Reasons for Choosing this Dataset}
+This dataset is interesting to us because both partners are sports fans.
+We also think it would be interesting if we could come up with a model to predict match winners, key player attributes, and league winners.
+The provider of the dataset mentioned a match-prediction accuracy of 53\%.
+Even though we are unlikely to succeed, we think it would be interesting to try to beat that percentage.
+
+Kaggle provides for iterative improvements of the dataset.
+The most recent versions were uploaded within 10 days of this writing (version 7 through 10).
+The frequently updated nature of this dataset suggests that care has been taken to maintain the high quality of the data.
+
+\section*{Proposed Data Preprocessing Steps}
+A good portion of the data pre-processing and aggregation was done by the provider (Kaggle user Hugo Mathien).
+
+Thanks to Mathien's efforts in collecting and organising this dataset from several sources, we are afforded the ability to issue straightforward SQL queries in our data aggregation steps.
+This will enable us to reduce dimensionality to easily focus only on areas of interest.
+
+For our initial problem of predicting match winners, we will focus on the \textbf{Match}, \textbf{Team}, and \textbf{Team-Attributes} entities.
+Using SQL, we will extract team data for each match, keeping track of an attribute vector for the winning team.
+Based on these 10000+ vectors, for future matches, we could try to predict the outcome given the teams' attributes.
+Each match is inherently a comparison between two teams.
+We will take advantage of this fact to build a model that, given two teams, can tell which one is likely to win, or if the match will be a draw.
+We could also attempt to predict the goal-count of a match, which would have implications on bookkeeping and betting.
+
+For model creation, we are partial to decision trees over rule-based classifiers.
+With rule-based classifiers, there is a bit more overhead with ordering and prioritising rules that is not present when using decision trees. 
+This overhead comes without an increase in speed of classification. Due to the reduced complexity, we prefer decision trees.
+
+After aggregating data of interest, we will apply dimensionality reduction techniques like Principal Component Analysis to narrow down the dataset to the important features only.
+
+\section*{Proposed Data Mining Approaches}
+
+
+\end{document}
