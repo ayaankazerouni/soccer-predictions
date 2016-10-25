@@ -1,13 +1,14 @@
 \documentclass[11pt, letterpaper]{article}
 \usepackage{fullpage}
 \usepackage{parskip}
+\usepackage{hyperref}
 
 \begin{document}
 \title{CS 5525 Proposal -- European Soccer Predictions}
 \author{Harsh Patel, Ayaan Kazerouni}
 \date{}
 \maketitle
-\textbf{Description of the Data:} We have chosen a European soccer dataset that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
+\textbf{Description of the Data:} We have chosen a European soccer dataset~\cite{mathien1} that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
 Covering 11 European countries and their championships, this dataset spans an 8-year period (2008 - 2016).
 It provides detailed match events such as goal types, possessions and more, for more than 10000 matches.
 Player and team attributes are sourced from the popular EA Sports FIFA video game series.
@@ -58,4 +59,7 @@ A particular player may be very well coordinated with a particular player, but m
 Hence, the coordination between players could be a deciding factor in a match.
 
 With these dependencies in mind, it would perhaps be better to consider Bayesian networks for the second model.
+
+\bibliography{proposal}
+\bibliographystyle{plain}
 \end{document}
