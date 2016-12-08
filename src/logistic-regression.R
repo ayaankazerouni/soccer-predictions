@@ -10,6 +10,8 @@ difference.vectors = na.omit(difference.vectors)
 # turn the outcome variable into a binary variable (1 = win, 0 = not win)
 difference.vectors$outcome[difference.vectors$outcome == 1] = 0
 difference.vectors$outcome[difference.vectors$outcome == 2] = 1
+drop = c('away_team_odds', 'home_team_odds', 'draw_odds')
+difference.vectors = difference.vectors[, !names(difference.vectors) %in% drop]
 
 # I declare thee a factor
 difference.vectors$outcome = factor(difference.vectors$outcome)
