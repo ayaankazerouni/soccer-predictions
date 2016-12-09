@@ -16,29 +16,37 @@ difference.vectors = difference.vectors[, !names(difference.vectors) %in% drop]
 # I declare thee a factor
 difference.vectors$outcome = factor(difference.vectors$outcome)
 
-# 0.8/0.2 train/test
-smp_size = floor(0.80 * nrow(difference.vectors))
-set.seed(123)
-train.indices = sample(seq_len(nrow(difference.vectors)), size=smp_size)
-data.train = difference.vectors[train.indices, ]
-data.test = difference.vectors[-train.indices, ]
+# create 5 folds for cross-validation
+folds = cut(seq(1, nrow(difference.vectors)), breaks=5, labels=FALSE)
 
-# train the model
-logistic.full = glm(outcome ~ ., data = data.train, family = binomial(link = 'logit'))
-logistic.null = glm(outcome ~ 1, data = data.test, family = binomial(link = 'logit'))
-logistic.final = step(logistic.full, scope = c(logistic.null, logistic.full), direction = 'backward')
+accuracy.total = 0.0
 
-# predictions
-predictions = predict(logistic.final, newdata = data.test)
-predictions = ifelse(predictions > 0.5, 1, 0)
-misclassification.error = mean(predictions != data.test$outcome)
-accuracy = 1 - misclassification.error
+for (i in 1:5) {
+  # 0.8/0.2 train/test
+  test.indices = which(folds == 1, arr.ind = TRUE)
+  data.test = difference.vectors[test.indices, ]
+  data.train = difference.vectors[-test.indices, ]
+  
+  # train the model
+  logistic.full = glm(outcome ~ ., data = data.train, family = binomial(link = 'logit'))
+  logistic.null = glm(outcome ~ 1, data = data.train, family = binomial(link = 'logit'))
+  logistic.final = step(logistic.full, scope = c(logistic.null, logistic.full), direction = 'backward', trace = -1)
+  
+  # predictions
+  predictions = predict(logistic.final, newdata = data.test)
+  predictions = ifelse(predictions > 0.5, 1, 0)
+  misclassification.error = mean(predictions != data.test$outcome)
+  accuracy = 1 - misclassification.error
+  accuracy.total = accuracy.total + accuracy
+  
+  # ROC curve
+  library(ROCR)
+  pr = prediction(predictions, data.test$outcome)
+  prf = performance(pr, measure = 'tpr', x.measure = 'fpr')
+  plot(prf)
+  
+  auc = performance(pr, measure = 'auc')
+  auc = auc@y.values[[1]]
+}
 
-# ROC curve
-library(ROCR)
-pr = prediction(predictions, data.test$outcome)
-prf = performance(pr, measure = 'tpr', x.measure = 'fpr')
-plot(prf)
-
-auc = performance(pr, measure = 'auc')
-auc = auc@y.values[[1]]
+accuracy.average = accuracy.total / 5
