@@ -8,3 +8,6 @@
 *.blg
 *.ipynb_checkpoints/
 *.csv
+.Rproj.user
+.RData
+.Rhistory
