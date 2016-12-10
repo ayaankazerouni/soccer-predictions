@@ -5,8 +5,8 @@ difference.vectors = read.csv('difference_vectors.csv')
 # create outcome variables for win/not-win and lose/not-lose
 difference.vectors$win[difference.vectors$outcome %in% c(1, 0)] = 0
 difference.vectors$win[difference.vectors$outcome == 2] = 1
-difference.vectors$lose[difference.vectors$outcome == 0] = 0
-difference.vectors$lose[difference.vectors$outcome %in% c(1, 2)] = 1
+difference.vectors$lose[difference.vectors$outcome %in% c(1, 2)] = 0
+difference.vectors$lose[difference.vectors$outcome == 0] = 1
 
 # I declare thee a factor
 difference.vectors$win = factor(difference.vectors$win)
@@ -17,6 +17,7 @@ folds = cut(seq(1, nrow(difference.vectors)), breaks=5, labels=FALSE)
 
 win.accuracy.total = 0.0
 lose.accuracy.total = 0.0
+multinomial.accuracy.total = 0.0
 
 for (i in 1:5) {
   # 0.8/0.2 train/test
@@ -38,6 +39,12 @@ for (i in 1:5) {
                  + defenceTeamWidth, data = data.train, family = binomial(link = 'logit'))
   lose.final = step(lose.full, scope = list(upper = lose.full, lower = lose.null), direction = 'backward', trace = -1)
   
+  # train the multinomial model to predict win/lose/draw
+  library(nnet)
+  multinomial.full = multinom(outcome ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
+                              + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
+                              + defenceTeamWidth,, data = data.train)
+  
   # win/not-win predictions
   win.predictions = predict(win.final, newdata = data.test)
   win.predictions = ifelse(win.predictions > 0.5, 1, 0)
@@ -53,7 +60,15 @@ for (i in 1:5) {
   lose.accuracy = 1 - lose.error
   lose.accuracy.total = lose.accuracy.total + lose.accuracy
   data.test$lose.predictions = lose.predictions
+  
+  # win/lose/draw predictions
+  multinomial.predictions = predict(multinomial.full, newdata = data.test)
+  multinomial.error = mean(multinomial.predictions != data.test$outcome)
+  multinomial.accuracy = 1 - multinomial.error
+  multinomial.accuracy.total = multinomial.accuracy.total + multinomial.accuracy
+  data.test$multinomial.predictions = multinomial.predictions
 }
 
 win.accuracy.average = win.accuracy.total / 5
 lose.accuracy.average = lose.accuracy.total / 5
+multinomial.accuracy.average = multinomial.accuracy.total / 5
