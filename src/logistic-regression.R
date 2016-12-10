@@ -1,45 +1,59 @@
 # data import and preprocessing
-difference.vectors = read.csv('difference_vectors.csv', row.names = 'match_api_id')
+difference.vectors = read.csv('difference_vectors.csv')
 
 # stepwise logistic regression
-# turn the outcome variable into a binary variable (1 = win, 0 = not win)
-difference.vectors$outcome[difference.vectors$outcome == 1] = 0
-difference.vectors$outcome[difference.vectors$outcome == 2] = 1
+# create outcome variables for win/not-win and lose/not-lose
+difference.vectors$win[difference.vectors$outcome %in% c(1, 0)] = 0
+difference.vectors$win[difference.vectors$outcome == 2] = 1
+difference.vectors$lose[difference.vectors$outcome == 0] = 0
+difference.vectors$lose[difference.vectors$outcome %in% c(1, 2)] = 1
 
 # I declare thee a factor
-difference.vectors$outcome = factor(difference.vectors$outcome)
+difference.vectors$win = factor(difference.vectors$win)
+difference.vectors$lose = factor(difference.vectors$lose)
 
 # create 5 folds for cross-validation
 folds = cut(seq(1, nrow(difference.vectors)), breaks=5, labels=FALSE)
 
-accuracy.total = 0.0
+win.accuracy.total = 0.0
+lose.accuracy.total = 0.0
 
 for (i in 1:5) {
   # 0.8/0.2 train/test
-  test.indices = which(folds == 1, arr.ind = TRUE)
+  test.indices = which(folds == i, arr.ind = TRUE)
   data.test = difference.vectors[test.indices, ]
   data.train = difference.vectors[-test.indices, ]
   
-  # train the model
-  logistic.null = glm(outcome ~ 1, data = data.train, family = binomial(link = 'logit'))
-  logistic.full = glm(outcome ~ ., data = data.train, family = binomial(link = 'logit'))
-  logistic.final = step(logistic.full, scope = c(logistic.null, logistic.full), direction = 'backward', trace = -1)
+  # train the model to predict win/not-win
+  win.null = glm(win ~ 1, data = data.train, family = binomial(link = 'logit'))
+  win.full = glm(win ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
+                 + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
+                 + defenceTeamWidth, data = data.train, family = binomial(link = 'logit'))
+  win.final = step(win.full, scope = list(upper=win.full, lower=win.null), direction = 'backward', trace = -1)
   
-  # predictions
-  predictions = predict(logistic.final, newdata = data.test)
-  predictions = ifelse(predictions > 0.5, 1, 0)
-  misclassification.error = mean(predictions != data.test$outcome)
-  accuracy = 1 - misclassification.error
-  accuracy.total = accuracy.total + accuracy
+  # train the model to predict lose/not-lose
+  lose.null = glm(lose ~ 1, data = data.train, family = binomial(link = 'logit'))
+  lose.full = glm(lose ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
+                 + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
+                 + defenceTeamWidth, data = data.train, family = binomial(link = 'logit'))
+  lose.final = step(lose.full, scope = list(upper = lose.full, lower = lose.null), direction = 'backward', trace = -1)
+  
+  # win/not-win predictions
+  win.predictions = predict(win.final, newdata = data.test)
+  win.predictions = ifelse(win.predictions > 0.5, 1, 0)
+  win.error = mean(win.predictions != data.test$win)
+  win.accuracy = 1 - win.error
+  win.accuracy.total = win.accuracy.total + win.accuracy
+  data.test$win.predictions = win.predictions
+  
+  # lose/not-lose predictions
+  lose.predictions = predict(lose.final, newdata = data.test)
+  lose.predictions = ifelse(lose.predictions > 0.5, 1, 0)
+  lose.error = mean(lose.predictions != data.test$lose)
+  lose.accuracy = 1 - lose.error
+  lose.accuracy.total = lose.accuracy.total + lose.accuracy
+  data.test$lose.predictions = lose.predictions
 }
 
-# ROC curve
-library(ROCR)
-pr = prediction(predictions, data.test$outcome)
-prf = performance(pr, measure = 'tpr', x.measure = 'fpr')
-plot(prf)
-
-auc = performance(pr, measure = 'auc')
-auc = auc@y.values[[1]]
-
-accuracy.average = accuracy.total / 5
+win.accuracy.average = win.accuracy.total / 5
+lose.accuracy.average = lose.accuracy.total / 5
