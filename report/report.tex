@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{hyperref}
+
+\begin{document}
+\title{Predicting the Outcome of Soccer Matches Using Logistic Regression}
+\author{Ayaan Kazerouni and Harsh Patel}
+\date{}
+\maketitle
+
+\section{Problem Statement}
+Soccer is a widely played sport, and is arguably the only globally played sport.
+We thought it would be interesting to develop a model that could predict the winner of a soccer game, a task called the `holy grail' by the provider of the dataset.
+Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began, described in Section~\ref{sec-preprocessing}.
+
+\section{Data Description}
+We have chosen a European soccer dataset~\cite{mathien1} that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
+Covering 11 European countries and their championships, this dataset spans an 8-year period (2008 - 2016).
+It provides detailed match events such as goal types, possessions and more, for more than 10000 matches.
+Player and team attributes are sourced from the popular EA Sports FIFA video game series.
+
+The data is provided in a relational database (SQLite3 Database) of \textit{Matches}, \textit{Players}, \textit{Player-Attributes}, \textit{Teams}, \textit{Team-Attributes}, \textit{Leagues}, and \textit{Countries}.
+A description of the magnitude of the data is provided in Table~\ref{tab:data-desc}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{}                   & \textbf{Count} & \textbf{Dimensions} \\ \hline
+\textbf{Match}              & 25979          & 115                 \\ \hline
+\textbf{Teams}              & 299            & 5                   \\ \hline
+\textbf{Team\_Attributes}    & 1458           & 25                  \\ \hline
+\textbf{Player}             & 11060          & 7                   \\ \hline
+\textbf{Player\_Attributes} & 183978         & 42                  \\ \hline
+\textbf{Country}            & 11             & 2                   \\ \hline
+\textbf{League}             & 11             & 3                   \\ \hline
+\end{tabular}
+\caption{Magnitude of the available data}
+\label{tab:data-desc}
+\end{table}
+
+With our objective in mind, the following two tables were of interest to us:
+\begin{itemize}
+  \item Match
+  \item Team\_Attributes
+\end{itemize}
+
+Looking at Table~\ref{tab:data-desc} again, notice that Match and Team\_Attributes have 115 and 25 attributes, respectively.
+The Match table contained the following relevant dimensions:
+\begin{itemize}
+  \item season
+  \item stage
+  \item date
+  \item home_team_id
+  \item away_team_id
+  \item home_team_goal
+  \item away_team_goal
+  \item goal
+  \item shoton
+  \item shotoff
+  \item cross
+  \item corner
+  \item possession
+\end{itemize}
+
+
+\bibliography{report.bib}
+\bibliographystyle{plain}
+\end{document}

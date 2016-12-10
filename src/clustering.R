@@ -13,12 +13,16 @@ splits = split(team.attrs, team.attrs$date)
 # plot(1:15, wss, type='b', xlab = 'Number of clusters', ylab='Within groups sum of squares', 
 #      main= 'No. of clusters vs. WSS')
 
+centers = NULL
+set.seed(10)
 par(mfrow=c(2,3))
 for (i in 1:length(splits)) {
   # perform kmeans clustering
   data = splits[[i]]
   data = data[, !(names(data) == 'date')]
   clusters = kmeans(data, 3)
+  centers[[i]] = clusters$centers
+  
   
   # plot PCA-reduced data, coloured for clusters
   pca = prcomp(data)
