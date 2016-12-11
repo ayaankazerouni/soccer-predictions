@@ -334,6 +334,8 @@ These calculations significantly increased pre-processing time, but the gain in 
 We performed 5-fold cross-validation, and the resulting average accuracy was ~74\%, displaying a \textbf{20\% increase} from the model without the win\_percentage feature.
 The confusion matrix from one of the testing runs is presented in table~\ref{tab:logistic-fusion2}.
 
+Note: We did a stepwise logistic regression, so some of the variables may not appear in the estimate table.
+
 \begin{table}[ht!]
 \centering
 \begin{tabular}{|l|l|r|r|}
@@ -378,7 +380,7 @@ We also only used the win\_percentage feature in this model, since the others co
 While not satisfactory, this achieves our mentioned goal of surpassing the author's accuracy level of 53\%.
 The detailed model is in table~\ref{tab:multinom-estimates}, and the confusion matrix is in table~\ref{tab:multinom-confusion}.
 
-\begin{table}[ht]
+\begin{table}[h!]
 \centering
 \begin{tabular}{rrr}
   \hline
@@ -392,7 +394,7 @@ The detailed model is in table~\ref{tab:multinom-estimates}, and the confusion m
 \label{tab:multinom-estimates}
 \end{table}
 
-\begin{table}[]
+\begin{table}[ht!]
   \centering
   \begin{tabular}{|c|c|r|r|r|}
     \hline \multicolumn{2}{|l|}{\multirow{2}{*}{}} & \multicolumn{3}{c|}{Predicted Class} \\
@@ -403,6 +405,60 @@ The detailed model is in table~\ref{tab:multinom-estimates}, and the confusion m
     \caption{Confusion Matrix for Multinomial Logistic Regression\\Accuracy = 63\%}
     \label{tab:multinom-confusion}
   \end{table}
+
+\subsection{Ensemble Methods - Trying to do better than 63\%}
+Implementing a multinomial regression reduced our accuracy considerably. Hence, we decided to train another stepwise binomial model that predicted 0 (win or draw) and 1 (lose). After 5-fold cross validation, we observed an accuracy of ~80\%. The features used by this model were 'win\_percentage' and 'possesion\_percentage'.
+
+The confusion matrix for this model is given in Table~\ref{tab:justloseFusion}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|c|r|}
+\hline
+\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                                           & \multicolumn{2}{c|}{Predicted Class}               \\ \cline{3-4} 
+\multicolumn{2}{|l|}{}                                                                            & 0                         & \multicolumn{1}{c|}{1} \\ \hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}}} & 0 & \multicolumn{1}{r|}{3544} & 68                     \\ \cline{2-4} 
+\multicolumn{1}{|c|}{}                                                                        & 1 & \multicolumn{1}{r|}{1018} & 496                    \\ \hline
+\end{tabular}
+\caption{Confusion Matrix for Predicting Lose or Not Lose\\Accuracy = 80\%}
+\label{tab:justloseFusion}
+\end{table}
+
+The details of the model are in Table~\ref{tab:justloseCoeff}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & z value & Pr($>$$|$z$|$) \\ 
+  \hline
+(Intercept) & 2.1086 & 0.0516 & 40.83 & 0.0000 \\ 
+  win\_percentage & -8.0385 & 0.1364 & -58.92 & 0.0000 \\ 
+  pos\_percentage & 0.0831 & 0.0252 & 3.30 & 0.0010 \\ 
+   \hline
+\end{tabular}
+\caption{Estimate Table for the Lose-Not Lose Logistic Regression}
+\label{tab:justloseCoeff}
+\end{table}
+
+We treated these classifiers as two week classifiers, since they are both binary classifiers and do not predict the `Draw' outcome.
+We implemented a meta classifier that took into account the predictions from the Win/Not-Win and Lose/Not-Lose classifiers to return a Win/Lose/Draw prediction. Unfortunately, the accuracy came out to ~53\%.
+
+The confusion Matrix is given in Table~\ref{tab:012Fusion}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|r|r|r|}
+\hline
+\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                     & \multicolumn{3}{c|}{Predicted Class}                                     \\ \cline{3-5} 
+\multicolumn{2}{|l|}{}                                                      & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} \\ \hline
+\multirow{3}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}} & 0 & 496                    & 920                    & 98                     \\ \cline{2-5} 
+                                                                        & 1 & 54                     & 981                    & 154                    \\ \cline{2-5} 
+                                                                        & 2 & 14                     & 1135                   & 1247                   \\ \hline
+\end{tabular}
+\caption{Confusion Matrix from Ensemble Method}
+\label{tab:012Fusion}
+\end{table}
 
 \bibliography{report.bib}
 \bibliographystyle{plain}
