@@ -86,8 +86,11 @@ Here, instead of tranforming the data to a new space using techniques such as PC
 \\
 \\
 Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began, described in Section~\ref{sec-preprocessing}.
-\section{Mining Algorithm}
+\section{Preprocessing}
+Selecting some of the attributes from the match and team_Attributes tables, we had to come up with some kind of comparison between the attributes of home team and that of the away team. The simplest approach to this was to just take a difference between these attributes. 
 
+\section{Mining Algorithm}
+As suggested in our proposal, we first tried to build a decision tree, the simplest of the models, to predict the outcome of a future match given two teams and their latest attributes. We used sklearn library in python to design our classification tree.
 
 \bibliography{report.bib}
 \bibliographystyle{plain}
