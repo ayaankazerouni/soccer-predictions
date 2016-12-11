@@ -2,7 +2,8 @@
 .DS_Store
 *.aux
 *.log
-*.pdf
+report.pdf
+proposal.pdf
 *.bbl
 *.out
 *.blg

@@ -41,9 +41,7 @@ for (i in 1:5) {
   
   # train the multinomial model to predict win/lose/draw
   library(nnet)
-  multinomial.full = multinom(outcome ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
-                              + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
-                              + defenceTeamWidth + pos_percentage, data = data.train, na.action = na.pass)
+  multinomial.full = multinom(outcome ~ win_percentage, data = data.train, na.action = na.pass)
   
   # win/not-win predictions
   win.predictions = predict(win.final, newdata = data.test)
