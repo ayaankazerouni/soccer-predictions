@@ -5,6 +5,7 @@
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{multirow}
+\usepackage{parskip}
 
 \begin{document}
 \title{Predicting the Outcome of Soccer Matches}
@@ -18,7 +19,8 @@ We thought it would be interesting to develop a model that could predict the win
 
 We have access to a dataset that has featrures from matches already played, ranging from the number of goals scored by home team and away team to different attributes of the players of individual teams. Given this dataset, our goal is to build a model that predicts the winner of the match fairly accurately.
 As with a lot of parameters in data analytics and machine learning, `fairly accurately' is a vague term, but we define it as anything better than 53\%, which is the accuracy achieved by the dataset provider (and the target accuracy we mentioned in our proposal).
-We are unaware of the features used in their model or the nature of their model. We have also not looked at what others have done with this dataset.
+We are unaware of the features used in their model or the nature of their model.
+We have also not looked at what others have done with this publicly available dataset.
 The work presented in this report is solely our own.
 
 \section{Data Description}
@@ -91,7 +93,8 @@ With our objective in mind, the following two tables were of interest to us:
   \item Match
   \item Team\_Attributes
 \end{itemize}
-Although, Player\_Attributes might give useful information about the strengths of the team, we haven't delved much into it as there are numerous attributes of the players and for each match, we would have to come up with a normalized attribute for the whole team. This would complicate our model and we aimed at keeping the model as simple as possible to avoid overfitting.
+Although Player\_Attributes might give useful information about the strengths of the team, we haven't delved much into it as there are numerous attributes of the players and for each match, we would have to come up with a normalized attribute for the whole team.
+This would have complicated our model and we aimed at keeping the model as simple as possible to avoid overfitting.
 
 From the structure of the data, it is apparent that the rest of the tables, except player attributes, are used for indexing purposes (eg. foreign keys from leagues to countries).
 These data entries, being nominal attributes, are just used to differentiate between two different entities and hence do not contribute towards finding out interesting patterns in the data.
@@ -114,7 +117,7 @@ The plot is in figure~\ref{fig:sse}.
 \end{figure}
 
 Once we had selected $k$, we performed k-means clustering on the team attributes for each year in 2010 to 2015.
-To visualize the clustered team attributes, we performed Principlal Component Analysis (PCA) to reduce the dimensionality from 8 to 2.
+To visualize the clustered team attributes, we performed Principal Component Analysis (PCA) to reduce the dimensionality from 8 to 2.
 The PCA-reduced clusters are in figure~\ref{fig:clusters}.
 We can see more variability between teams in 2010 than in subsequent years.
 In other words, given two teams, it would be easier to categorize them in 2010 -- which presumably means that it would be easier to determine the outcome between two teams in different clusters.
@@ -123,6 +126,36 @@ The remaining years see the teams moving further apart again, but not as much as
 
 \textbf{Please note that the clustering took place on the original data.
 PCA was used for visualization purposes only.}
+We also performed clustering on all team attributes across the six years.
+The centroids gleaned are in table~\ref{tab:centroids}.
+
+\begin{table}[ht!]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & C1 & C2 & C3 \\
+  \hline
+buildUpPlaySpeed & 57.55 & 56.53 & 41.69 \\
+  buildUpPlayPassing & 48.81 & 53.75 & 39.61 \\
+  chanceCreationPassing & 60.03 & 52.65 & 45.01 \\
+  chanceCreationCrossing & 56.65 & 55.97 & 47.71 \\
+  chanceCreationShooting & 60.99 & 50.98 & 53.20 \\
+  defencePressure & 56.63 & 41.66 & 44.57 \\
+  defenceAggression & 56.11 & 47.43 & 46.69 \\
+  defenceTeamWidth & 59.92 & 49.49 & 50.34 \\
+   \hline
+\end{tabular}
+\caption{Cluster centers for team attributes from 2010 to 2015.}
+\label{tab:centroids}
+\end{table}
+
+Fairly clear distinctions can be seen between the clusters.
+$C1$ has the highest scores on every attribute except for \textit{buildUpPlayPassing}, indicating that the teams in this cluster are generally better than the teams in the other clusters.
+
+Comparing clusters $C2$ and $C3$, we see that for the first 4 attributes, the teams in $C2$ tend to have higher scores than $C3$.
+For the next 4, the two clusters are fairly similar, with $C3$ even scoring higher on certain attributes.
+A deeper look into the domain-specific meaning of the attributes suggests that the teams in cluster $C2$ are better than the teams in $C3$ in matters relating to \textbf{offense}.
+The two clusters are on par with each other in matters relating to \textbf{defense}.
 
 \begin{figure}[ht]
   \centering
@@ -415,9 +448,9 @@ The confusion matrix for this model is given in Table~\ref{tab:justloseFusion}.
 \centering
 \begin{tabular}{|l|c|c|r|}
 \hline
-\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                                           & \multicolumn{2}{c|}{Predicted Class}               \\ \cline{3-4} 
+\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                                           & \multicolumn{2}{c|}{Predicted Class}               \\ \cline{3-4}
 \multicolumn{2}{|l|}{}                                                                            & 0                         & \multicolumn{1}{c|}{1} \\ \hline
-\multicolumn{1}{|c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}}} & 0 & \multicolumn{1}{r|}{3544} & 68                     \\ \cline{2-4} 
+\multicolumn{1}{|c|}{\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}}} & 0 & \multicolumn{1}{r|}{3544} & 68                     \\ \cline{2-4}
 \multicolumn{1}{|c|}{}                                                                        & 1 & \multicolumn{1}{r|}{1018} & 496                    \\ \hline
 \end{tabular}
 \caption{Confusion Matrix for Predicting Lose or Not Lose\\Accuracy = 80\%}
@@ -430,11 +463,11 @@ The details of the model are in Table~\ref{tab:justloseCoeff}.
 \centering
 \begin{tabular}{rrrrr}
   \hline
- & Estimate & Std. Error & z value & Pr($>$$|$z$|$) \\ 
+ & Estimate & Std. Error & z value & Pr($>$$|$z$|$) \\
   \hline
-(Intercept) & 2.1086 & 0.0516 & 40.83 & 0.0000 \\ 
-  win\_percentage & -8.0385 & 0.1364 & -58.92 & 0.0000 \\ 
-  pos\_percentage & 0.0831 & 0.0252 & 3.30 & 0.0010 \\ 
+(Intercept) & 2.1086 & 0.0516 & 40.83 & 0.0000 \\
+  win\_percentage & -8.0385 & 0.1364 & -58.92 & 0.0000 \\
+  pos\_percentage & 0.0831 & 0.0252 & 3.30 & 0.0010 \\
    \hline
 \end{tabular}
 \caption{Estimate Table for the Lose-Not Lose Logistic Regression}
@@ -450,15 +483,36 @@ The confusion Matrix is given in Table~\ref{tab:012Fusion}.
 \centering
 \begin{tabular}{|c|c|r|r|r|}
 \hline
-\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                     & \multicolumn{3}{c|}{Predicted Class}                                     \\ \cline{3-5} 
+\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                     & \multicolumn{3}{c|}{Predicted Class}                                     \\ \cline{3-5}
 \multicolumn{2}{|l|}{}                                                      & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} \\ \hline
-\multirow{3}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}} & 0 & 496                    & 920                    & 98                     \\ \cline{2-5} 
-                                                                        & 1 & 54                     & 981                    & 154                    \\ \cline{2-5} 
+\multirow{3}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}} & 0 & 496                    & 920                    & 98                     \\ \cline{2-5}
+                                                                        & 1 & 54                     & 981                    & 154                    \\ \cline{2-5}
                                                                         & 2 & 14                     & 1135                   & 1247                   \\ \hline
 \end{tabular}
 \caption{Confusion Matrix from Ensemble Method}
 \label{tab:012Fusion}
 \end{table}
+
+\section{Real-World Insights}
+From our models, we can predict the following things:
+\begin{itemize}
+  \item Win or not: We can predict with 74\% accuracy whether a team will win a soccer match or not.
+  \item Lose or not: We can predict with 80\% accuracy whether a team will lose a soccer match or not.
+  \item Match outcome: We can predict with 63\% accuracy a team's outcome for a soccer match.
+\end{itemize}
+
+In Europe, where betting and bookkeeping are legal, there are obvious actionable benefits from such predictions.
+For fans world over, an empirically-evaluated prediction for a match outcome is useful and interesting information.
+The information can also be used for publicity purposes.
+During big tournaments like the world cup, for example, commentators tend to speculate on match outcomes for dramatization purposes.
+
+From our clustering efforts, we could also see that, based on the team attributes, there are roughly three classes of teams.
+Coaches and players could benefit from this information, enabling them to understand teams' playing styles more deeply.
+It could possibly also provide more assistance in match outcome predictions.
+
+\section{Lessons Learned}
+This project gave us some practical insights into data mining that were not possible to get from
+
 
 \bibliography{report.bib}
 \bibliographystyle{plain}
