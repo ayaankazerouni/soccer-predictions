@@ -3,8 +3,8 @@
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{parskip}
-\usepackage{mutlirow}
+\usepackage{caption}
+\usepackage{multirow}
 
 \begin{document}
 \title{Predicting the Outcome of Soccer Matches}
@@ -221,6 +221,7 @@ We also defined a $win\_percentage$ variable that looked at past encounters betw
 This variable will be discussed in further detail in Section~\ref{sec:models}.
 
 \section{Prediction Algorithms}
+\label{sec:models}
 We started by predicting if the home would \textit{win} or \textit{not win}.
 Hence, we changed the outcome of the match from 0 (lose), 1 (draw), and 2 (win) to just 0 (lose or draw) and 1 (win).
 After processing the data in a way that will be suitable for our intended task, we used various classification and regression models to come up with the outcome given two different teams and their respective attributes.
@@ -251,7 +252,7 @@ Unfortunately, the decision tree did not perform particularly well.
 We achieved approximately 50\% accuracy, which is essentially the accuracy of a random guess for a binary variable.
 To improve these results, we decided to try another classification method.
 
-\subsection{Logistic Regression}
+\subsection{Binomial Logistic Regression - Predicting Win or Not Win}
 We went through several versions of the logistic regression, makign strategic changes to the features involved each time. The details of each iteration are presented below.
 
 \subsubsection{Iteration 1:}
@@ -262,51 +263,147 @@ We trained a stepwise logistic regression using these features to predict 0 (los
 
 Performing 5-fold cross validation, each time using 80\% as the training set and 20\% as the testing set, we achieved ~65\% accuracy.
 This was encouraging, since it represented a 15\% jump from the accuracy achieved with a decision tree.
-However, the Odds variables represented other professionals' predictions of the match outcome. 
+However, the Odds variables represented other professionals' predictions of the match outcome.
 Hence, we did not want to use these predictors in our predictor. Therefore, we decided to remove those from the model.
 
 \subsubsection{Iteration 2:}
-We re-ran the logistic regression model with the same difference vector (table~\ref{tab:diff}) as we used for the decision tree. The accuracy achieved by the logistic regression model was 54\%. The increase in accuracy from that of a decision tree is not significant in this case.
+We re-ran the logistic regression model with the same difference vector (table~\ref{tab:diff}) as we used for the decision tree. The average accuracy achieved by the logistic regression dropped to 54\%. The increase in accuracy from that of a decision tree is not significant in this case.
 
-The confusion matrix for ~5000 test data entries is given by:
-\begin{table}[]
+The confusion matrix for one of the testing runs (~5000 data entries) is given in table~\ref{tab:logistic-fusion1}.
+\begin{table}[ht!]
 \centering
 \begin{tabular}{|l|l|r|r|}
 \hline
-\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                     & \multicolumn{2}{l|}{Predicted class} \\ \cline{3-4} 
+\multicolumn{2}{|l|}{\multirow{2}{*}{}}                                     & \multicolumn{2}{l|}{Predicted class} \\ \cline{3-4}
 \multicolumn{2}{|l|}{}                                                      & 0                  & 1               \\ \hline
-\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}Actual\\ Class\end{tabular}} & 0 & 2694               & 9               \\ \cline{2-4} 
+\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}Actual\\ Class\end{tabular}} & 0 & 2694               & 9               \\ \cline{2-4}
                                                                         & 1 & 2410               & 13              \\ \hline
 \end{tabular}
-\caption{Logistic Regression Confusion Matrix}
-\label{logistic-fusion1}
+\caption{Logistic Regression Confusion Matrix\\Accuracy = 54\%}
+\label{tab:logistic-fusion1}
 \end{table}
-To include more meanigful attributes in our model, we came up with `Win Percentage' attribute for each team.
+
+The estimate table for the logistic model is presented in table~\ref{tab:logistic-fusion2}.
+
+\begin{table}[ht!]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & z value & Pr($>$$|$z$|$) \\
+  \hline
+(Intercept) & -0.1835 & 0.0142 & -12.95 & 0.0000 \\
+  buildUpPlaySpeed & 0.0017 & 0.0011 & 1.57 & 0.1163 \\
+  buildUpPlayPassing & -0.0120 & 0.0011 & -11.15 & 0.0000 \\
+  chanceCreationPassing & 0.0035 & 0.0011 & 3.21 & 0.0013 \\
+  chanceCreationCrossing & 0.0061 & 0.0010 & 6.09 & 0.0000 \\
+  chanceCreationShooting & 0.0050 & 0.0011 & 4.57 & 0.0000 \\
+  defencePressure & 0.0131 & 0.0014 & 9.72 & 0.0000 \\
+  defenceAggression & 0.0020 & 0.0012 & 1.64 & 0.1016 \\
+  defenceTeamWidth & -0.0067 & 0.0013 & -4.98 & 0.0000 \\
+   \hline
+\end{tabular}
+\caption{Estimates for the 2nd logistic regression}
+\label{tab:logistic-estimate1}
+\end{table}
+
+\subsubsection{Iteration 3}
+An accuracy of 54\% was a slight improvement from the Decision Tree, but not by much.
+We could do better.
+
+We decided that some new meaningful feature might help boost our accuracy.
+To do this, we came up with a home team `Win Percentage' attribute for each match, and we added this to our feature vector for use in model-training.
 We define `Win Percentage' as follows:
+\begin{quotation}
+  Given a match $M$, we find all previous encounters between the two teams involved\footnote{Given that the data is provided for past 6 years, we are fairly sure about a considerable number of encounters between any two teams. Hence, no matter which two teams are playing from given data, we will always come up with a non-zero win\_percentage for both teams. It is highly unlikely (for this dataset) to find a combination of a teams that haven't played each other in past.}.
+  We calculate the home team's win percentage in these previous encounters.
+  Keep in mind that the home team in match $M$ might not necessarily be the home team in previous matches, so we identified the `team of interest' by team\_id during these calculations.
 
-Given two teams, we find all their past encounters. A clear win is treated as a win only, but to save ourselves from the curse of 0 in a multiplication, we treat a draw as a win by both teams instead of assigning a 0 to both teams.
+  If two teams had draws in all of their previous encounters there would be a possibility of a zero win-percentage.
+  To avoid the model thinking that this meant our `team of interest' had \textit{lost} all their games, we treated draws as wins for both teams.
+\end{quotation}
+
+Or, mathematically:
 \begin{align*}
-win\_percentage\_team1 &= \frac{matches\;won\;by\;team1}{matches\;won\;by\;team1 + matches\;won\;by\;team2} \\
-win\_percentage\_team2 &= \frac{matches\;won\;by\;team2}{matches\;won\;by\;team1 + matches\;won\;by\;team2}
+win\_percentage\_team1 &= \frac{\textrm{matches won by team1}}{\textrm{matches won by team1} + \textrm{matches won by team2}} \\
+win\_percentage\_team2 &= \frac{\textrm{matches won by team2}}{\textrm{matches won by team1} + \textrm{matches won by team2}}
 \end{align*}
-*Given that the data is provided for past 6 years, we are farily sure about a considerable number of encounters between any two teams. Hence, no matter which two teams are playing from given data, we will always come up with a non-zero win\_percentage for both teams. It is highly unlikely (for this dataset) to find a combination of a teams that haven't played each other in past.
 
-\subsection{Binomial Regression}
-First, we just tried to predict if home\_team wins or loses. We are not trying to predict the result as a 'draw'.
-In this case home\_team\_win outcome is represented as a 1 and home\_team\_lose as a 0.
-We use the same outcomes used for a decision tree.
+We also calculated a `Possession Percentage' indicating the home team's possession percentage.
 
-\subsection{Multinomial Regression}
-We tried to predict the outcome as a draw as well along with a win or lose, 
+These calculations significantly increased pre-processing time, but the gain in model accuracy was worth it.
+We performed 5-fold cross-validation, and the resulting average accuracy was ~74\%, displaying a \textbf{20\% increase} from the model without the win\_percentage feature.
+The confusion matrix from one of the testing runs is presented in table~\ref{tab:logistic-fusion2}.
 
+\begin{table}[ht!]
+\centering
+\begin{tabular}{|l|l|r|r|}
+\hline
+\multicolumn{2}{|l|}{\multirow{2}{*}{}} & \multicolumn{2}{l|}{Predicted Class} \\ \cline{3-4}
+\multicolumn{2}{|l|}{}                  & 0                 & 1                \\ \hline
+\multirow{2}{*}{Actual Class}    & 0    & 2451              & 252              \\ \cline{2-4}
+                                 & 1    & 1149              & 1274             \\ \hline
+\end{tabular}
+\caption{Confusion Matrix for Logistic Regression using Win-Percentage and Possession Percentage\\Accuracy = 74\%}
+\label{tab:logistic-fusion2}
+\end{table}
 
+The details of this model are presented in table~\ref{tab:logistic-estimate2}.
+\begin{table}[h!]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & z value & Pr($>$$|$z$|$) \\
+  \hline
+(Intercept) & -4.3802 & 0.0681 & -64.34 & 0.0000 \\
+  win\_percentage & 9.6293 & 0.1541 & 62.49 & 0.0000 \\
+  buildUpPlaySpeed & -0.0029 & 0.0013 & -2.21 & 0.0269 \\
+  buildUpPlayPassing & 0.0025 & 0.0014 & 1.83 & 0.0678 \\
+  chanceCreationShooting & -0.0024 & 0.0014 & -1.74 & 0.0823 \\
+  defenceAggression & -0.0042 & 0.0015 & -2.76 & 0.0057 \\
+  defenceTeamWidth & -0.0041 & 0.0015 & -2.71 & 0.0067 \\
+   \hline
+\end{tabular}
+\caption{Estimates for the Win/Not-Win Logistic Regression}
+\label{tab:logistic-estimate2}
+\end{table}
+
+\subsection{Multinomial Logistic Regression - Predicting Win, Lose, or Draw}
+So far, we have only been predicting 0 (lose or draw) or 1 (win).
+The provider of the dataset mentioned that he achieved a 53\% accuracy while making this prediction.
+We couldn't use a binomial logistic regression for this prediction, since that expects a binary outcome variable.
+Instead, we used a multinomial logistic regression, implemented by the R package \textit{nnet}~\cite{nnet}.
+
+Predictable, average accuracy from 5-fold cross-validation went down from 74\% (win or not-win) to ~63\% (win, lose, or draw).
+We also only used the win\_percentage feature in this model, since the others contributed negligibly to the final equation.
+While not satisfactory, this achieves our mentioned goal of surpassing the author's accuracy level of 53\%.
+The detailed model is in table~\ref{tab:multinom-estimates}, and the confusion matrix is in table~\ref{tab:multinom-confusion}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & (Intercept) & win\_percentage \\
+  \hline
+1 & -1.72 & 5.16 \\
+  2 & -4.72 & 12.79 \\
+   \hline
+\end{tabular}
+\caption{Coefficients for the multinomial regression}
+\label{tab:multinom-estimates}
+\end{table}
+
+\begin{table}[]
+  \centering
+  \begin{tabular}{|c|c|r|r|r|}
+    \hline \multicolumn{2}{|l|}{\multirow{2}{*}{}} & \multicolumn{3}{c|}{Predicted Class} \\
+    \cline{3-5} \multicolumn{2}{|l|}{} & \multicolumn{1}{c|}{0} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} \\
+    \hline \multirow{3}{*}{\begin{tabular}[c]{@{}c@{}}Actual\\ Class\end{tabular}} & 0 & 853 & 325 & 155 \\ \cline{2-5}
+    & 1 & 278 & 375 & 247 \\ \cline{2-5} & 2 & 383 & 489 & 2021 \\
+    \hline \end{tabular}
+    \caption{Confusion Matrix for Multinomial Logistic Regression\\Accuracy = 63\%}
+    \label{tab:multinom-confusion}
+  \end{table}
 
 \bibliography{report.bib}
 \bibliographystyle{plain}
 \end{document}
-
-
-
-
-
-
