@@ -3,33 +3,45 @@
 \usepackage{hyperref}
 
 \begin{document}
-\title{Predicting the Outcome of Soccer Matches Using Logistic Regression}
+\title{Predicting the Outcome of Soccer Matches}
 \author{Ayaan Kazerouni and Harsh Patel}
 \date{}
 \maketitle
 
 \section{Problem Statement}
 Soccer is a widely played sport, and is arguably the only globally played sport.
-We thought it would be interesting to develop a model that could predict the winner of a soccer game, a task called the `holy grail' by the provider of the dataset.
-Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began, described in Section~\ref{sec-preprocessing}.
+We thought it would be interesting to develop a model that could predict the winner of a soccer game, a task called the `holy grail' by the provider of the dataset. Our problem statement is formally defined as follows:
+\newline
+\newline
+We have access to a dataset that has featrures from matches already played, ranging from the number of goals scored by home team and away team to different attributes of the players of individual teams. Given this dataset, our goal is to build a model that predicts the winner of the match fairly accurately. As with a lot of parameters in data analytics and machine learning, `fairly accurately' is a vague term, but we define it as anything better than 53\%, which is the accuracy achieved by the dataset provider. We are anaware of the features used in their model or the nature of their model. We haven`t either taken a look at what all is done using this dataset. The work presented in this report is solely our work.
 
 \section{Data Description}
-We have chosen a European soccer dataset~\cite{mathien1} that contains data about more than 25000 soccer matches and more than 10000 players and their attributes.
-Covering 11 European countries and their championships, this dataset spans an 8-year period (2008 - 2016).
-It provides detailed match events such as goal types, possessions and more, for more than 10000 matches.
-Player and team attributes are sourced from the popular EA Sports FIFA video game series.
-
+We have chosen a European soccer dataset~\cite{mathien1}, the nature of which as described by the provider is:
+\begin{itemize}
+  \setlength\itemsep{0em}
+  \item{+25,000 matches}
+  \item{+10,000 playres}
+  \item{11 European countries with their lead championship}
+  \item{Seasons 2008 to 2016}
+  \item{Players and Teams' attributes sourced from EA Sports' FIFA video game series, including the weekly updates}
+  \item{Team line up with squad formation (X, Y coordinates)}
+  \item{Betting odds from up to 10 providers}
+  \item{Detailed match events (goal types, possession, corner, cross, fouls, cards etc...) for +10,000 matches}
+\end{itemize}
+We are thankful to the data provider for consolidating, and processing the data into a structured database(SQLite) from various online sources. This has reduced work on finding relevant data on our part considerably.
+\newline
+\newline
 The data is provided in a relational database (SQLite3 Database) of \textit{Matches}, \textit{Players}, \textit{Player-Attributes}, \textit{Teams}, \textit{Team-Attributes}, \textit{Leagues}, and \textit{Countries}.
 A description of the magnitude of the data is provided in Table~\ref{tab:data-desc}.
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|l|r|r|}
 \hline
 \textbf{}                   & \textbf{Count} & \textbf{Dimensions} \\ \hline
 \textbf{Match}              & 25979          & 115                 \\ \hline
 \textbf{Teams}              & 299            & 5                   \\ \hline
-\textbf{Team\_Attributes}    & 1458           & 25                  \\ \hline
+\textbf{Team\_Attributes}   & 1458           & 25                  \\ \hline
 \textbf{Player}             & 11060          & 7                   \\ \hline
 \textbf{Player\_Attributes} & 183978         & 42                  \\ \hline
 \textbf{Country}            & 11             & 2                   \\ \hline
@@ -39,22 +51,30 @@ A description of the magnitude of the data is provided in Table~\ref{tab:data-de
 \label{tab:data-desc}
 \end{table}
 
+Here, active reader would have noticed that there are only 299 teams but 1458 team\_attribute rows. It is because the data provider has provided the attributes for some teams over a span of the period and intuitive enough, the attributes keep changing over time. Also, the same is true for player attributes. The attributes of players keep changing over time.
+\subsection{Data Exploration}
 With our objective in mind, the following two tables were of interest to us:
 \begin{itemize}
+  \setlength\itemsep{0em}
   \item Match
   \item Team\_Attributes
 \end{itemize}
-
+Although, player\_Attributes might give useful information about the strngths of the team, we haven't delved much into it as there are numerous attributes of the players and for each match, we would have to come up with a normalized attribute for the whole team. This would complicate our model and we aimed at keeping the model as simple as possible to avoid overfitting.
+\newline
+\newline
+From the structure of the data, it is apparent that the rest of the tables, except playre attributes, are used to index keys to values such as country name to country id. These data entries, being nominal attributes, are just used to differentiate between two different entities and hence do not contribute towards finding out interesting patterns in the data.
+\subsection{Data Reduction}
 Looking at Table~\ref{tab:data-desc} again, notice that Match and Team\_Attributes have 115 and 25 attributes, respectively.
 The Match table contained the following relevant dimensions:
 \begin{itemize}
+  \setlength\itemsep{0em}
   \item season
   \item stage
   \item date
-  \item home_team_id
-  \item away_team_id
-  \item home_team_goal
-  \item away_team_goal
+  \item home\_team\_id
+  \item away\_team\_id
+  \item home\_team\_goal
+  \item away\_team\_goal
   \item goal
   \item shoton
   \item shotoff
@@ -62,6 +82,11 @@ The Match table contained the following relevant dimensions:
   \item corner
   \item possession
 \end{itemize}
+Here, instead of tranforming the data to a new space using techniques such as PCA, we have kept the data in its original state and used domain specific knowledge to hand pick some interesting features. Handpicking the features we have reduced the dimensionality complexity from 115 to a little more than 10.
+\\
+\\
+Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began, described in Section~\ref{sec-preprocessing}.
+\section{Mining Algorithm}
 
 
 \bibliography{report.bib}
