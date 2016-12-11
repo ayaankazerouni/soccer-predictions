@@ -1,5 +1,5 @@
 # data import and preprocessing
-difference.vectors = read.csv('difference_vectors.csv')
+difference.vectors = read.csv('difference_vectors_new.csv')
 
 # stepwise logistic regression
 # create outcome variables for win/not-win and lose/not-lose
@@ -29,21 +29,21 @@ for (i in 1:5) {
   win.null = glm(win ~ 1, data = data.train, family = binomial(link = 'logit'))
   win.full = glm(win ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
                  + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
-                 + defenceTeamWidth, data = data.train, family = binomial(link = 'logit'))
+                 + defenceTeamWidth + pos_percentage, data = data.train, family = binomial(link = 'logit'), na.action = na.pass)
   win.final = step(win.full, scope = list(upper=win.full, lower=win.null), direction = 'backward', trace = -1)
   
   # train the model to predict lose/not-lose
   lose.null = glm(lose ~ 1, data = data.train, family = binomial(link = 'logit'))
   lose.full = glm(lose ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
                  + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
-                 + defenceTeamWidth, data = data.train, family = binomial(link = 'logit'))
+                 + defenceTeamWidth + pos_percentage, data = data.train, family = binomial(link = 'logit'), na.action = na.pass)
   lose.final = step(lose.full, scope = list(upper = lose.full, lower = lose.null), direction = 'backward', trace = -1)
   
   # train the multinomial model to predict win/lose/draw
   library(nnet)
   multinomial.full = multinom(outcome ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
                               + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
-                              + defenceTeamWidth,, data = data.train)
+                              + defenceTeamWidth + pos_percentage, data = data.train, na.action = na.pass)
   
   # win/not-win predictions
   win.predictions = predict(win.final, newdata = data.test)
