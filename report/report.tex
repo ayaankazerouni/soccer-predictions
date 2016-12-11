@@ -1,6 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage{fullpage}
 \usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{graphicx}
 
 \begin{document}
 \title{Predicting the Outcome of Soccer Matches}
@@ -11,11 +13,14 @@
 \section{Problem Statement}
 Soccer is a widely played sport, and is arguably the only globally played sport.
 We thought it would be interesting to develop a model that could predict the winner of a soccer game, a task called the `holy grail' by the provider of the dataset. Our problem statement is formally defined as follows:
-\newline
-\newline
-We have access to a dataset that has featrures from matches already played, ranging from the number of goals scored by home team and away team to different attributes of the players of individual teams. Given this dataset, our goal is to build a model that predicts the winner of the match fairly accurately. As with a lot of parameters in data analytics and machine learning, `fairly accurately' is a vague term, but we define it as anything better than 53\%, which is the accuracy achieved by the dataset provider. We are anaware of the features used in their model or the nature of their model. We haven`t either taken a look at what all is done using this dataset. The work presented in this report is solely our work.
+
+We have access to a dataset that has featrures from matches already played, ranging from the number of goals scored by home team and away team to different attributes of the players of individual teams. Given this dataset, our goal is to build a model that predicts the winner of the match fairly accurately.
+As with a lot of parameters in data analytics and machine learning, `fairly accurately' is a vague term, but we define it as anything better than 53\%, which is the accuracy achieved by the dataset provider (and the target accuracy we mentioned in our proposal).
+We are unaware of the features used in their model or the nature of their model. We have also not looked at what others have done with this dataset.
+The work presented in this report is solely our own.
 
 \section{Data Description}
+\label{sec:data-desc}
 We have chosen a European soccer dataset~\cite{mathien1}, the nature of which as described by the provider is:
 \begin{itemize}
   \setlength\itemsep{0em}
@@ -28,10 +33,10 @@ We have chosen a European soccer dataset~\cite{mathien1}, the nature of which as
   \item{Betting odds from up to 10 providers}
   \item{Detailed match events (goal types, possession, corner, cross, fouls, cards etc...) for +10,000 matches}
 \end{itemize}
-We are thankful to the data provider for consolidating, and processing the data into a structured database(SQLite) from various online sources. This has reduced work on finding relevant data on our part considerably.
-\newline
-\newline
-The data is provided in a relational database (SQLite3 Database) of \textit{Matches}, \textit{Players}, \textit{Player-Attributes}, \textit{Teams}, \textit{Team-Attributes}, \textit{Leagues}, and \textit{Countries}.
+We are thankful to the data provider for consolidating and organizing the data from various online sources.
+This has reduced work on finding relevant data on our part considerably.
+
+The data is provided in a relational database (SQLite3) of \textit{Matches}, \textit{Players}, \textit{Player-Attributes}, \textit{Teams}, \textit{Team-Attributes}, \textit{Leagues}, and \textit{Countries}.
 A description of the magnitude of the data is provided in Table~\ref{tab:data-desc}.
 
 \begin{table}[ht]
@@ -51,7 +56,32 @@ A description of the magnitude of the data is provided in Table~\ref{tab:data-de
 \label{tab:data-desc}
 \end{table}
 
-Here, active reader would have noticed that there are only 299 teams but 1458 team\_attribute rows. It is because the data provider has provided the attributes for some teams over a span of the period and intuitive enough, the attributes keep changing over time. Also, the same is true for player attributes. The attributes of players keep changing over time.
+Here, the active reader would have noticed that there are only 299 teams but 1458 Team\_Attribute rows.
+This is because the data provider has provided the attributes for some teams over a span of several years and intuitively enough, the attributes keep changing over time.
+The same is true for the player attributes.
+
+Some descriptive statistics for team attributes can be seen in table~\ref{tab:desc-stat}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rllllll}
+  \hline
+                 & Min     & 1st Qu. & Median  & Mean    & 3rd Qu. & Max \\
+  \hline
+buildUpPlaySpeed & 20.00   & 45.00   & 52.00   & 52.46   & 62.00   & 80.00   \\
+  buildUpPlayPassing & 20.00   & 40.00   & 50.00   & 48.49   & 55.00   & 80.00   \\
+  chanceCreationPassing & 21.00   & 46.00   & 52.00   & 52.17   & 59.00   & 80.00   \\
+  chanceCreationCrossing & 20.00   & 47.00   & 53.00   & 53.73   & 62.00   & 80.00   \\
+  chanceCreationShooting & 22.00   & 48.00   & 53.00   & 53.97   & 61.00   & 80.00   \\
+  defencePressure & 23.00   & 39.00   & 45.00   & 46.02   & 51.00   & 72.00   \\
+  defenceAggression & 24.00   & 44.00   & 48.00   & 49.25   & 55.00   & 72.00   \\
+  defenceTeamWidth & 29.00   & 47.00   & 52.00   & 52.19   & 58.00   & 73.00   \\
+   \hline
+\end{tabular}
+\caption{5-number summaries for team attributes}
+\label{tab:desc-stat}
+\end{table}
+
 \subsection{Data Exploration}
 With our objective in mind, the following two tables were of interest to us:
 \begin{itemize}
@@ -59,11 +89,48 @@ With our objective in mind, the following two tables were of interest to us:
   \item Match
   \item Team\_Attributes
 \end{itemize}
-Although, player\_Attributes might give useful information about the strngths of the team, we haven't delved much into it as there are numerous attributes of the players and for each match, we would have to come up with a normalized attribute for the whole team. This would complicate our model and we aimed at keeping the model as simple as possible to avoid overfitting.
-\newline
-\newline
-From the structure of the data, it is apparent that the rest of the tables, except playre attributes, are used to index keys to values such as country name to country id. These data entries, being nominal attributes, are just used to differentiate between two different entities and hence do not contribute towards finding out interesting patterns in the data.
-\subsection{Data Reduction}
+Although, Player\_Attributes might give useful information about the strngths of the team, we haven't delved much into it as there are numerous attributes of the players and for each match, we would have to come up with a normalized attribute for the whole team. This would complicate our model and we aimed at keeping the model as simple as possible to avoid overfitting.
+
+From the structure of the data, it is apparent that the rest of the tables, except player attributes, are used for indexing purposes (eg. foreign keys from leagues to countries).
+These data entries, being nominal attributes, are just used to differentiate between two different entities and hence do not contribute towards finding out interesting patterns in the data.
+
+\subsection{K-means Clustering}
+K-Means clustering on team attributes provided some interesting insights.
+First, we needed to pick a value for $k$.
+To do this, we followed~\cite{cluster1}.
+We performed k-means clustering for different values of $k$ from 2 to 12, and plotted the SSE for each $k$.
+Our dataset had $n = ~25000$, so this process was relatively inexpensive in R.
+The decrease in SSE from 2 to 3 was large but didn't change as much past that.
+This told us that $k=3$ was an optimum number of clusters.
+The plot is in figure~\ref{fig:sse}.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.5]{wss}
+  \caption{Decrease in SSE as k increases.}
+  \label{fig:sse}
+\end{figure}
+
+Once we had selected $k$, we performed k-means clustering on the team attributes for each year in 2010 to 2015.
+To visualize the clustered team attributes, we performed Principlal Component Analysis (PCA) to reduce the dimensionality from 8 to 2.
+The PCA-reduced clusters are in figure~\ref{fig:clusters}.
+We can see more variability between teams in 2010 than in subsequent years.
+In other words, given two teams, it would be easier to categorize them in 2010 -- which presumably means that it would be easier to determine the outcome between two teams in different clusters.
+For years 2011, the clusters are denser and closer together for the most part, indicating that teams were more closely matched up in 2011.
+The remaining years see the teams moving further apart again, but not as much as 2010.
+
+\textbf{Please note that the clustering took place on the original data.
+PCA was used for visualization purposes only.}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.6]{clusters}
+  \caption{PCA-reduced clustered team attributes for 6 years.}
+  \label{fig:clusters}
+\end{figure}
+
+\subsection{Data Preprocessing}
+\label{sec:preprocessing}
 Looking at Table~\ref{tab:data-desc} again, notice that Match and Team\_Attributes have 115 and 25 attributes, respectively.
 The Match table contained the following relevant dimensions:
 \begin{itemize}
@@ -82,15 +149,76 @@ The Match table contained the following relevant dimensions:
   \item corner
   \item possession
 \end{itemize}
-Here, instead of tranforming the data to a new space using techniques such as PCA, we have kept the data in its original state and used domain specific knowledge to hand pick some interesting features. Handpicking the features we have reduced the dimensionality complexity from 115 to a little more than 10.
-\\
-\\
-Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began, described in Section~\ref{sec-preprocessing}.
-\section{Preprocessing}
-Selecting some of the attributes from the match and team_Attributes tables, we had to come up with some kind of comparison between the attributes of home team and that of the away team. The simplest approach to this was to just take a difference between these attributes. 
 
-\section{Mining Algorithm}
-As suggested in our proposal, we first tried to build a decision tree, the simplest of the models, to predict the outcome of a future match given two teams and their latest attributes. We used sklearn library in python to design our classification tree.
+The Team Attributes provided were the following:
+\begin{itemize}
+  \setlength \itemsep{0em}
+  \item buildUpPlaySpeed
+  \item buildUpPlayPassing
+  \item chanceCreationPassing
+  \item chanceCreationCrossing
+  \item chanceCreationShooting
+  \item defencePressure
+  \item defenceAggression
+  \item defenceTeamWidth
+\end{itemize}
+
+All the above listed attributes are continuous.
+In addition to them, the database also contained a discretized value for each attribute listed above.
+For the preprocessing methodology we describe below, it was necessary to choose the continuous versions of these attributes.
+Also, there existed an attribute called \textit{buildUpPlayDribbling} that was not present in 969 (66\%) Team\_Attribute rows.
+This is a large percentage, and in addition to that, discarding rows with this NULL value would have had a ripple effect, causing us to discard too many matches.
+
+Since the data was provided as a relational database, significant pre-processing steps were undertaken before modelling began.
+
+Here, instead of tranforming the data to a new space using techniques such as Principal Component Analysis (PCA) or Multimdimensional Scaling (MDS), we have kept the data in its original state and used domain specific knowledge to hand pick some interesting features.
+Handpicking the features we have reduced the dimensionality complexity from 115 to a little more than 10.
+
+\subsection{Difference Vectors}
+During our ideation phase, we realized that when two teams are facing each other, we would need a method with which to compare the two teams.
+The simplest method to do this was to calculate a `difference vector' for each match -- a vector of the differences between each involved team's attributes.
+
+The next question that arose was how to identify \textit{which} team we were making a prediction about.
+Our solution was to change the problem from \textbf{Predicting the winner} to \textbf{Predicting the result for the home team}.
+Doing things this way fell in line nicely for our concept of `difference vectors'.
+If $h$ is a vector of the home team's attributes and $a$ is a vector of the away team's attributes, then $d = h - a$, where $d$ is the difference vector, \textit{from the perspective of the home team}.
+
+For example, see the home team $h$, the away team $a$, and their difference vector presented in table~\ref{tab:diff}.
+The vector $d = h - a$ for each match is what is passed to our models for prediction.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+                                & \textbf{h} & \textbf{a} & \textbf{d = h - a} \\ \hline
+\textbf{buildUpPlaySpeed}       & 61         & 50         & 11             \\ \hline
+\textbf{buildUpPlayPassing}     & 46         & 54         & -8             \\ \hline
+\textbf{chanceCreationPassing}  & 66         & 52         & 14             \\ \hline
+\textbf{chanceCreationCrossing} & 66         & 54         & 12             \\ \hline
+\textbf{chanceCreationShooting} & 54         & 46         & 8              \\ \hline
+\textbf{defencePressure}        & 47         & 36         & 11             \\ \hline
+\textbf{defenceAggression}      & 58         & 43         & 15             \\ \hline
+\textbf{defenceTeamWidth}       & 53         & 47         & 6              \\ \hline
+\end{tabular}
+\caption{Difference vector}
+\label{tab:diff}
+\end{table}
+
+\subsubsection{Which attributes to use?}
+As mentioned in Section~\ref{sec:data-desc}, each team had several vectors of attributes associated with it, since they had potentially differing attributes each year.
+As can be seen in figure~\ref{fig:clusters}, the distributions of team attributes were not static across the 6 years for which team information is available.
+As a result, for a particular team playing a particular match, we used the vector of attributes with the date \textit{closest to the match date}.
+This typically meant we used attributes from the same sporting season.
+
+\subsubsection{Defining the outcome variable}
+Recall that, for each match, the database provided a home\_goal count and an away\_goal count.
+Since we had turned our problem into a prediction for the home team, we defined an $outcome$ categorical variable for each difference vector.
+The variable has 3 levels: 0 if the home team lost, 1 if the match was a draw, and 2 if the home team won.
+
+We also defined a $win_percentage$ variable that looked at past encounters between two given teams.
+This variable will be discussed in further detail in Section~\ref{sec:models}.
+
+\section{Prediction}
 
 \bibliography{report.bib}
 \bibliographystyle{plain}

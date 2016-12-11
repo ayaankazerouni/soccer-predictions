@@ -6,12 +6,12 @@ splits = split(team.attrs, team.attrs$date)
 # figure out how many clusters by calculating
 # wss for 1:15 clusters, then plotting them to see
 # at what point we lose benefit of more clusters
-# wss = (nrow(team.attrs) - 1) * sum(apply(team.attrs, 2, var))
-# for (i in 2:15) wss[i] = sum(kmeans(team.attrs, centers = i)$withinss)
-# 
-# # looking at the trend in within group sum of squares, we choose k = 3
-# plot(1:15, wss, type='b', xlab = 'Number of clusters', ylab='Within groups sum of squares', 
-#      main= 'No. of clusters vs. WSS')
+wss = (nrow(team.attrs[, 2:9]) - 1) * sum(apply(team.attrs[, 2:9], 2, var))
+for (i in 2:12) wss[i] = sum(kmeans(team.attrs[, 2:9], centers = i)$withinss)
+
+# looking at the trend in within group sum of squares, we choose k = 3
+plot(1:12, wss, type='b', xlab = 'Number of clusters', ylab='Within groups sum of squares',
+     main= 'No. of clusters vs. WSS')
 
 centers = NULL
 set.seed(10)
@@ -23,10 +23,9 @@ for (i in 1:length(splits)) {
   clusters = kmeans(data, 3)
   centers[[i]] = clusters$centers
   
-  
   # plot PCA-reduced data, coloured for clusters
   pca = prcomp(data)
-  plot(pca$x[, 1], pca$x[, 2], col=clusters$cluster + 1, 
+  plot(pca$x[, 1], pca$x[, 2], col=clusters$cluster + 1,
        pch=clusters$cluster, xlab = 'PC1', ylab = 'PC2',
        main = paste('201', i - 1, sep = ''))
 }
