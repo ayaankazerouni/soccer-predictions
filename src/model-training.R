@@ -18,6 +18,7 @@ folds = cut(seq(1, nrow(difference.vectors)), breaks=5, labels=FALSE)
 win.accuracy.total = 0.0
 lose.accuracy.total = 0.0
 multinomial.accuracy.total = 0.0
+tree.accuracy.total = 0.0
 
 for (i in 1:5) {
   # 0.8/0.2 train/test
@@ -43,6 +44,15 @@ for (i in 1:5) {
   library(nnet)
   multinomial.full = multinom(outcome ~ win_percentage, data = data.train, na.action = na.pass)
   
+  # train a decision tree to predict win/lose/draw
+  library(rpart)
+  tree = rpart(outcome ~ win_percentage + buildUpPlaySpeed + buildUpPlayPassing + chanceCreationPassing
+               + chanceCreationCrossing + chanceCreationShooting + defencePressure + defenceAggression
+               + defenceTeamWidth + pos_percentage, data = data.train, method = 'class', 
+               control=rpart.control(minsplit=30, cp=0.001))
+  # automatically prune at the most optimum point by looking at complexity parameters
+  prune(tree, tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
+  
   # win/not-win predictions
   win.predictions = predict(win.final, newdata = data.test)
   win.predictions = ifelse(win.predictions > 0.5, 1, 0)
@@ -59,14 +69,22 @@ for (i in 1:5) {
   lose.accuracy.total = lose.accuracy.total + lose.accuracy
   data.test$lose.predictions = lose.predictions
   
-  # win/lose/draw predictions
+  # win/lose/draw predictions using multinomial regression
   multinomial.predictions = predict(multinomial.full, newdata = data.test)
   multinomial.error = mean(multinomial.predictions != data.test$outcome)
   multinomial.accuracy = 1 - multinomial.error
   multinomial.accuracy.total = multinomial.accuracy.total + multinomial.accuracy
   data.test$multinomial.predictions = multinomial.predictions
+  
+  # win/lose/draw/predictions using a decision tree
+  tree.predictions = predict(tree, newdata = data.test, type='class')
+  tree.error = mean(tree.predictions != data.test$outcome)
+  tree.accuracy = 1 - tree.error
+  tree.accuracy.total = tree.accuracy.total + tree.accuracy
+  data.test$tree.predictions = tree.predictions
 }
 
 win.accuracy.average = win.accuracy.total / 5
 lose.accuracy.average = lose.accuracy.total / 5
 multinomial.accuracy.average = multinomial.accuracy.total / 5
+tree.accuracy.average = tree.accuracy.total / 5

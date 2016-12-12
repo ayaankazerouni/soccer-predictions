@@ -13,6 +13,9 @@ for (i in 2:12) wss[i] = sum(kmeans(team.attrs[, 2:9], centers = i)$withinss)
 plot(1:12, wss, type='b', xlab = 'Number of clusters', ylab='Within groups sum of squares',
      main= 'No. of clusters vs. WSS')
 
+# clustering on team attrs for all years
+clusters.all = kmeans(team.attrs[, 2:9], 3)
+
 centers = NULL
 set.seed(10)
 par(mfrow=c(2,3))
